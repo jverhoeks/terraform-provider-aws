@@ -209,7 +209,7 @@ func resourceAwsRoute53ZoneRead(d *schema.ResourceData, meta interface{}) error 
 
 	d.Set("comment", "")
 	d.Set("delegation_set_id", "")
-	d.Set("name", output.HostedZone.Name)
+	d.Set("name", strings.TrimSuffix(output.HostedZone.Name, "."))
 	d.Set("zone_id", cleanZoneID(aws.StringValue(output.HostedZone.Id)))
 
 	var nameServers []string
