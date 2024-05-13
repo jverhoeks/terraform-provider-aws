@@ -9,12 +9,14 @@ import (
 	"log"
 	"reflect"
 
+	"github.com/YakDriver/regexache"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/lakeformation"
 	awstypes "github.com/aws/aws-sdk-go-v2/service/lakeformation/types"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/hashicorp/terraform-provider-aws/internal/conns"
 	"github.com/hashicorp/terraform-provider-aws/internal/create"
 	"github.com/hashicorp/terraform-provider-aws/internal/enum"
@@ -140,6 +142,15 @@ func ResourceDataLakeSettings() *schema.Resource {
 					ValidateFunc: verify.ValidAccountID,
 				},
 			},
+			names.AttrParameters: {
+				Type:     schema.TypeMap,
+				Required: true,
+				Elem:     &schema.Schema{Type: schema.TypeString},
+				ValidateDiagFunc: validation.AllDiag(
+					validation.MapKeyMatch(regexache.MustCompile(`^CROSS_ACCOUNT_VERSION$`), ""),
+					validation.MapValueLenBetween(1, 4),
+				),
+			},
 		},
 	}
 }
@@ -186,6 +197,10 @@ func resourceDataLakeSettingsCreate(ctx context.Context, d *schema.ResourceData,
 
 	if v, ok := d.GetOk("trusted_resource_owners"); ok {
 		settings.TrustedResourceOwners = flex.ExpandStringValueList(v.([]interface{}))
+	}
+
+	if v, ok := d.GetOk(names.AttrParameters); ok && len(v.(map[string]interface{})) > 0 {
+		settings.Parameters = flex.ExpandStringValueMap(v.(map[string]interface{}))
 	}
 
 	input.DataLakeSettings = settings
@@ -261,6 +276,24 @@ func resourceDataLakeSettingsRead(ctx context.Context, d *schema.ResourceData, m
 	d.Set("create_table_default_permissions", flattenDataLakeSettingsCreateDefaultPermissions(settings.CreateTableDefaultPermissions))
 	d.Set("external_data_filtering_allow_list", flattenDataLakeSettingsDataFilteringAllowList(settings.ExternalDataFilteringAllowList))
 	d.Set("trusted_resource_owners", flex.FlattenStringValueList(settings.TrustedResourceOwners))
+
+	// NOTE: This is a workaround for the fact that the API sets default values for parameters that are not set.
+	// Because the API sets default values, what's returned by the API is different than what's set by the user.
+	if v, ok := d.GetOk(names.AttrParameters); ok && len(v.(map[string]interface{})) > 0 {
+		parameters := make(map[string]string, 0)
+
+		for key, val := range v.(map[string]interface{}) {
+			if v, ok := settings.Parameters[key]; ok {
+				parameters[key] = v
+			} else {
+				parameters[key] = val.(string)
+			}
+		}
+
+		d.Set(names.AttrParameters, parameters)
+	} else {
+		d.Set(names.AttrParameters, nil)
+	}
 
 	return diags
 }
