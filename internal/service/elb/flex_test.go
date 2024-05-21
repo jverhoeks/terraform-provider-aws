@@ -97,9 +97,9 @@ func TestFlattenHealthCheck(t *testing.T) {
 				{
 					"unhealthy_threshold": int64(10),
 					"healthy_threshold":   int64(10),
-					"target":              "HTTP:80/",
-					"timeout":             int64(30),
-					"interval":            int64(30),
+					names.AttrTarget:      "HTTP:80/",
+					names.AttrTimeout:     int64(30),
+					names.AttrInterval:    int64(30),
 				},
 			},
 		},

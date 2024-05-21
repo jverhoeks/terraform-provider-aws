@@ -83,7 +83,7 @@ func ResourceWorkflow() *schema.Resource {
 																Optional: true,
 																ForceNew: true,
 															},
-															"path": {
+															names.AttrPath: {
 																Type:         schema.TypeString,
 																Optional:     true,
 																ForceNew:     true,
@@ -169,7 +169,7 @@ func ResourceWorkflow() *schema.Resource {
 											validation.StringMatch(regexache.MustCompile(`^\$\{(\w+.)+\w+\}$`), "Must be of the pattern ^\\$\\{(\\w+.)+\\w+\\}$"),
 										),
 									},
-									"target": {
+									names.AttrTarget: {
 										Type:         schema.TypeString,
 										Optional:     true,
 										ForceNew:     true,
@@ -210,7 +210,7 @@ func ResourceWorkflow() *schema.Resource {
 																Optional: true,
 																ForceNew: true,
 															},
-															"path": {
+															names.AttrPath: {
 																Type:         schema.TypeString,
 																Optional:     true,
 																ForceNew:     true,
@@ -396,7 +396,7 @@ func ResourceWorkflow() *schema.Resource {
 																Optional: true,
 																ForceNew: true,
 															},
-															"path": {
+															names.AttrPath: {
 																Type:         schema.TypeString,
 																Optional:     true,
 																ForceNew:     true,
@@ -482,7 +482,7 @@ func ResourceWorkflow() *schema.Resource {
 											validation.StringMatch(regexache.MustCompile(`^\$\{(\w+.)+\w+\}$`), "Must be of the pattern ^\\$\\{(\\w+.)+\\w+\\}$"),
 										),
 									},
-									"target": {
+									names.AttrTarget: {
 										Type:         schema.TypeString,
 										Optional:     true,
 										ForceNew:     true,
@@ -523,7 +523,7 @@ func ResourceWorkflow() *schema.Resource {
 																Optional: true,
 																ForceNew: true,
 															},
-															"path": {
+															names.AttrPath: {
 																Type:         schema.TypeString,
 																Optional:     true,
 																ForceNew:     true,
@@ -924,7 +924,7 @@ func expandCustomStepDetails(tfMap []interface{}) *transfer.CustomStepDetails {
 		apiObject.SourceFileLocation = aws.String(v)
 	}
 
-	if v, ok := tfMapRaw["target"].(string); ok && v != "" {
+	if v, ok := tfMapRaw[names.AttrTarget].(string); ok && v != "" {
 		apiObject.Target = aws.String(v)
 	}
 
@@ -951,7 +951,7 @@ func flattenCustomStepDetails(apiObject *transfer.CustomStepDetails) []interface
 	}
 
 	if v := apiObject.Target; v != nil {
-		tfMap["target"] = aws.StringValue(v)
+		tfMap[names.AttrTarget] = aws.StringValue(v)
 	}
 
 	if v := apiObject.TimeoutSeconds; v != nil {
@@ -1158,7 +1158,7 @@ func expandEFSFileLocation(tfMap []interface{}) *transfer.EfsFileLocation {
 		apiObject.FileSystemId = aws.String(v)
 	}
 
-	if v, ok := tfMapRaw["path"].(string); ok && v != "" {
+	if v, ok := tfMapRaw[names.AttrPath].(string); ok && v != "" {
 		apiObject.Path = aws.String(v)
 	}
 
@@ -1177,7 +1177,7 @@ func flattenEFSFileLocation(apiObject *transfer.EfsFileLocation) []interface{} {
 	}
 
 	if v := apiObject.Path; v != nil {
-		tfMap["path"] = aws.StringValue(v)
+		tfMap[names.AttrPath] = aws.StringValue(v)
 	}
 
 	return []interface{}{tfMap}

@@ -60,7 +60,7 @@ func TestAccCleanRoomsCollaboration_basic(t *testing.T) {
 				ResourceName:            resourceName,
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"apply_immediately", "user"},
+				ImportStateVerifyIgnore: []string{names.AttrApplyImmediately, "user"},
 			},
 		},
 	})
@@ -124,7 +124,7 @@ func TestAccCleanRoomsCollaboration_mutableProperties(t *testing.T) {
 				ResourceName:            resourceName,
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"apply_immediately", "user"},
+				ImportStateVerifyIgnore: []string{names.AttrApplyImmediately, "user"},
 			},
 		},
 	})
@@ -159,7 +159,7 @@ func TestAccCleanRoomsCollaboration_updateCreatorDisplayName(t *testing.T) {
 				ResourceName:            resourceName,
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"apply_immediately", "user"},
+				ImportStateVerifyIgnore: []string{names.AttrApplyImmediately, "user"},
 			},
 		},
 	})
@@ -193,7 +193,7 @@ func TestAccCleanRoomsCollaboration_updateQueryLogStatus(t *testing.T) {
 				ResourceName:            resourceName,
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"apply_immediately", "user"},
+				ImportStateVerifyIgnore: []string{names.AttrApplyImmediately, "user"},
 			},
 		},
 	})
@@ -232,14 +232,14 @@ func TestAccCleanRoomsCollaboration_dataEncryptionSettings(t *testing.T) {
 				Config: testAccCollaborationConfig_noDataEncryptionSettings(TEST_NAME, TEST_DESCRIPTION, TEST_TAG),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckCollaborationRecreated(resourceName, &collaboration),
-					resource.TestCheckResourceAttr(resourceName, "data_encryption_metadata.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "data_encryption_metadata.#", acctest.Ct0),
 				),
 			},
 			{
 				ResourceName:            resourceName,
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"apply_immediately", "user"},
+				ImportStateVerifyIgnore: []string{names.AttrApplyImmediately, "user"},
 			},
 		},
 	})
@@ -264,22 +264,22 @@ func TestAccCleanRoomsCollaboration_updateMemberAbilities(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "member.0.account_id", "123456789012"),
 					resource.TestCheckResourceAttr(resourceName, "member.0.display_name", "OtherMember"),
 					resource.TestCheckResourceAttr(resourceName, "member.0.status", "INVITED"),
-					resource.TestCheckResourceAttr(resourceName, "member.0.member_abilities.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "member.0.member_abilities.#", acctest.Ct0),
 				),
 			},
 			{
 				Config: testAccCollaborationConfig_swapMemberAbilities(TEST_NAME, TEST_DESCRIPTION, TEST_TAG),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckCollaborationRecreated(resourceName, &collaboration),
-					resource.TestCheckResourceAttr(resourceName, "creator_member_abilities.#", "0"),
-					resource.TestCheckResourceAttr(resourceName, "member.0.member_abilities.#", "2"),
+					resource.TestCheckResourceAttr(resourceName, "creator_member_abilities.#", acctest.Ct0),
+					resource.TestCheckResourceAttr(resourceName, "member.0.member_abilities.#", acctest.Ct2),
 				),
 			},
 			{
 				ResourceName:            resourceName,
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"apply_immediately", "user"},
+				ImportStateVerifyIgnore: []string{names.AttrApplyImmediately, "user"},
 			},
 		},
 	})

@@ -68,7 +68,7 @@ func ResourceCluster() *schema.Resource {
 				Optional: true,
 				Computed: true,
 			},
-			"apply_immediately": {
+			names.AttrApplyImmediately: {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Computed: true,
@@ -249,7 +249,7 @@ func ResourceCluster() *schema.Resource {
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"max_capacity": {
+						names.AttrMaxCapacity: {
 							Type:     schema.TypeFloat,
 							Optional: true,
 							Default:  ServerlessMaxNCUs,
@@ -288,7 +288,7 @@ func ResourceCluster() *schema.Resource {
 				ForceNew: true,
 				Default:  false,
 			},
-			"storage_type": {
+			names.AttrStorageType: {
 				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
@@ -446,7 +446,7 @@ func resourceClusterCreate(ctx context.Context, d *schema.ResourceData, meta int
 		inputC.ReplicationSourceIdentifier = aws.String(v)
 	}
 
-	if v, ok := d.GetOk("storage_type"); ok {
+	if v, ok := d.GetOk(names.AttrStorageType); ok {
 		v := v.(string)
 
 		inputC.StorageType = aws.String(v)
@@ -570,7 +570,7 @@ func resourceClusterRead(ctx context.Context, d *schema.ResourceData, meta inter
 		return sdkdiag.AppendErrorf(diags, "setting serverless_v2_scaling_configuration: %s", err)
 	}
 	d.Set("storage_encrypted", dbc.StorageEncrypted)
-	d.Set("storage_type", dbc.StorageType)
+	d.Set(names.AttrStorageType, dbc.StorageType)
 	var securityGroupIDs []string
 	for _, v := range dbc.VpcSecurityGroups {
 		securityGroupIDs = append(securityGroupIDs, aws.StringValue(v.VpcSecurityGroupId))
@@ -588,7 +588,7 @@ func resourceClusterUpdate(ctx context.Context, d *schema.ResourceData, meta int
 		allowMajorVersionUpgrade := d.Get("allow_major_version_upgrade").(bool)
 		input := &neptune.ModifyDBClusterInput{
 			AllowMajorVersionUpgrade: aws.Bool(allowMajorVersionUpgrade),
-			ApplyImmediately:         aws.Bool(d.Get("apply_immediately").(bool)),
+			ApplyImmediately:         aws.Bool(d.Get(names.AttrApplyImmediately).(bool)),
 			DBClusterIdentifier:      aws.String(d.Id()),
 		}
 
@@ -656,8 +656,8 @@ func resourceClusterUpdate(ctx context.Context, d *schema.ResourceData, meta int
 			input.ServerlessV2ScalingConfiguration = expandServerlessConfiguration(d.Get("serverless_v2_scaling_configuration").([]interface{}))
 		}
 
-		if d.HasChange("storage_type") {
-			input.StorageType = aws.String(d.Get("storage_type").(string))
+		if d.HasChange(names.AttrStorageType) {
+			input.StorageType = aws.String(d.Get(names.AttrStorageType).(string))
 		}
 
 		if d.HasChange(names.AttrVPCSecurityGroupIDs) {
@@ -979,7 +979,7 @@ func expandServerlessConfiguration(l []interface{}) *neptune.ServerlessV2Scaling
 	tfMap := l[0].(map[string]interface{})
 	return &neptune.ServerlessV2ScalingConfiguration{
 		MinCapacity: aws.Float64(tfMap["min_capacity"].(float64)),
-		MaxCapacity: aws.Float64(tfMap["max_capacity"].(float64)),
+		MaxCapacity: aws.Float64(tfMap[names.AttrMaxCapacity].(float64)),
 	}
 }
 
@@ -989,8 +989,8 @@ func flattenServerlessV2ScalingConfigurationInfo(serverlessConfig *neptune.Serve
 	}
 
 	m := map[string]interface{}{
-		"min_capacity": aws.Float64Value(serverlessConfig.MinCapacity),
-		"max_capacity": aws.Float64Value(serverlessConfig.MaxCapacity),
+		"min_capacity":        aws.Float64Value(serverlessConfig.MinCapacity),
+		names.AttrMaxCapacity: aws.Float64Value(serverlessConfig.MaxCapacity),
 	}
 
 	return []map[string]interface{}{m}

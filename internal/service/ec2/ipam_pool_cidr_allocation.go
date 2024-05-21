@@ -81,7 +81,7 @@ func ResourceIPAMPoolCIDRAllocation() *schema.Resource {
 				ValidateFunc:  validation.IntBetween(0, 128),
 				ConflictsWith: []string{"cidr"},
 			},
-			"resource_id": {
+			names.AttrResourceID: {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -89,7 +89,7 @@ func ResourceIPAMPoolCIDRAllocation() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"resource_type": {
+			names.AttrResourceType: {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -163,9 +163,9 @@ func resourceIPAMPoolCIDRAllocationRead(ctx context.Context, d *schema.ResourceD
 	d.Set("cidr", allocation.Cidr)
 	d.Set("ipam_pool_allocation_id", allocation.IpamPoolAllocationId)
 	d.Set("ipam_pool_id", poolID)
-	d.Set("resource_id", allocation.ResourceId)
+	d.Set(names.AttrResourceID, allocation.ResourceId)
 	d.Set("resource_owner", allocation.ResourceOwner)
-	d.Set("resource_type", allocation.ResourceType)
+	d.Set(names.AttrResourceType, allocation.ResourceType)
 
 	return diags
 }

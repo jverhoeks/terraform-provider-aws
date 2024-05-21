@@ -49,7 +49,7 @@ func ResourceLifecyclePolicy() *schema.Resource {
 					validation.StringLenBetween(1, 500),
 				),
 			},
-			"execution_role_arn": {
+			names.AttrExecutionRoleARN: {
 				Type:         schema.TypeString,
 				Required:     true,
 				ValidateFunc: verify.ValidARN,
@@ -60,7 +60,7 @@ func ResourceLifecyclePolicy() *schema.Resource {
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"action": {
+						names.AttrAction: {
 							Type:     schema.TypeList,
 							Optional: true,
 							MaxItems: 1,
@@ -72,7 +72,7 @@ func ResourceLifecyclePolicy() *schema.Resource {
 										MaxItems: 3,
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
-												"encryption_configuration": {
+												names.AttrEncryptionConfiguration: {
 													Type:     schema.TypeList,
 													Required: true,
 													MaxItems: 1,
@@ -97,7 +97,7 @@ func ResourceLifecyclePolicy() *schema.Resource {
 													MaxItems: 1,
 													Elem: &schema.Resource{
 														Schema: map[string]*schema.Schema{
-															"interval": {
+															names.AttrInterval: {
 																Type:         schema.TypeInt,
 																Required:     true,
 																ValidateFunc: validation.IntAtLeast(1),
@@ -113,7 +113,7 @@ func ResourceLifecyclePolicy() *schema.Resource {
 														},
 													},
 												},
-												"target": {
+												names.AttrTarget: {
 													Type:         schema.TypeString,
 													Required:     true,
 													ValidateFunc: validation.StringMatch(regexache.MustCompile(`^[\w:\-\/\*]+$`), ""),
@@ -216,7 +216,7 @@ func ResourceLifecyclePolicy() *schema.Resource {
 							Default:      dlm.PolicyTypeValuesEbsSnapshotManagement,
 							ValidateFunc: validation.StringInSlice(dlm.PolicyTypeValues_Values(), false),
 						},
-						"schedule": {
+						names.AttrSchedule: {
 							Type:     schema.TypeList,
 							Optional: true,
 							MinItems: 1,
@@ -240,7 +240,7 @@ func ResourceLifecyclePolicy() *schema.Resource {
 													Optional:     true,
 													ValidateFunc: validation.StringMatch(regexache.MustCompile("^cron\\([^\n]{11,100}\\)$"), "see https://docs.aws.amazon.com/dlm/latest/APIReference/API_CreateRule.html"),
 												},
-												"interval": {
+												names.AttrInterval: {
 													Type:         schema.TypeInt,
 													Optional:     true,
 													ValidateFunc: validation.IntInSlice([]int{1, 2, 3, 4, 6, 8, 12, 24}),
@@ -291,7 +291,7 @@ func ResourceLifecyclePolicy() *schema.Resource {
 													MaxItems: 1,
 													Elem: &schema.Resource{
 														Schema: map[string]*schema.Schema{
-															"interval": {
+															names.AttrInterval: {
 																Type:         schema.TypeInt,
 																Required:     true,
 																ValidateFunc: validation.IntAtLeast(1),
@@ -317,7 +317,7 @@ func ResourceLifecyclePolicy() *schema.Resource {
 													MaxItems: 1,
 													Elem: &schema.Resource{
 														Schema: map[string]*schema.Schema{
-															"interval": {
+															names.AttrInterval: {
 																Type:         schema.TypeInt,
 																Required:     true,
 																ValidateFunc: validation.IntAtLeast(1),
@@ -333,7 +333,7 @@ func ResourceLifecyclePolicy() *schema.Resource {
 														},
 													},
 												},
-												"target": {
+												names.AttrTarget: {
 													Type:         schema.TypeString,
 													Required:     true,
 													ValidateFunc: validation.StringMatch(regexache.MustCompile(`^[\w:\-\/\*]+$`), ""),
@@ -352,7 +352,7 @@ func ResourceLifecyclePolicy() *schema.Resource {
 													Optional:     true,
 													ValidateFunc: validation.IntBetween(1, 1000),
 												},
-												"interval": {
+												names.AttrInterval: {
 													Type:         schema.TypeInt,
 													Optional:     true,
 													ValidateFunc: validation.IntAtLeast(1),
@@ -386,7 +386,7 @@ func ResourceLifecyclePolicy() *schema.Resource {
 													Optional:     true,
 													ValidateFunc: validation.IntBetween(1, 1000),
 												},
-												"interval": {
+												names.AttrInterval: {
 													Type:         schema.TypeInt,
 													Optional:     true,
 													ValidateFunc: validation.IntAtLeast(1),
@@ -418,7 +418,7 @@ func ResourceLifecyclePolicy() *schema.Resource {
 													Optional:     true,
 													ValidateFunc: validation.IntBetween(1, 1000),
 												},
-												"interval": {
+												names.AttrInterval: {
 													Type:         schema.TypeInt,
 													Optional:     true,
 													ValidateFunc: validation.IntAtLeast(1),
@@ -506,7 +506,7 @@ func resourceLifecyclePolicyCreate(ctx context.Context, d *schema.ResourceData, 
 
 	input := dlm.CreateLifecyclePolicyInput{
 		Description:      aws.String(d.Get(names.AttrDescription).(string)),
-		ExecutionRoleArn: aws.String(d.Get("execution_role_arn").(string)),
+		ExecutionRoleArn: aws.String(d.Get(names.AttrExecutionRoleARN).(string)),
 		PolicyDetails:    expandPolicyDetails(d.Get("policy_details").([]interface{})),
 		State:            aws.String(d.Get(names.AttrState).(string)),
 		Tags:             getTagsIn(ctx),
@@ -547,7 +547,7 @@ func resourceLifecyclePolicyRead(ctx context.Context, d *schema.ResourceData, me
 
 	d.Set(names.AttrARN, out.Policy.PolicyArn)
 	d.Set(names.AttrDescription, out.Policy.Description)
-	d.Set("execution_role_arn", out.Policy.ExecutionRoleArn)
+	d.Set(names.AttrExecutionRoleARN, out.Policy.ExecutionRoleArn)
 	d.Set(names.AttrState, out.Policy.State)
 	if err := d.Set("policy_details", flattenPolicyDetails(out.Policy.PolicyDetails)); err != nil {
 		return sdkdiag.AppendErrorf(diags, "setting policy details %s", err)
@@ -570,8 +570,8 @@ func resourceLifecyclePolicyUpdate(ctx context.Context, d *schema.ResourceData, 
 		if d.HasChange(names.AttrDescription) {
 			input.Description = aws.String(d.Get(names.AttrDescription).(string))
 		}
-		if d.HasChange("execution_role_arn") {
-			input.ExecutionRoleArn = aws.String(d.Get("execution_role_arn").(string))
+		if d.HasChange(names.AttrExecutionRoleARN) {
+			input.ExecutionRoleArn = aws.String(d.Get(names.AttrExecutionRoleARN).(string))
 		}
 		if d.HasChange(names.AttrState) {
 			input.State = aws.String(d.Get(names.AttrState).(string))
@@ -624,10 +624,10 @@ func expandPolicyDetails(cfg []interface{}) *dlm.PolicyDetails {
 	if v, ok := m["resource_locations"].([]interface{}); ok && len(v) > 0 {
 		policyDetails.ResourceLocations = flex.ExpandStringList(v)
 	}
-	if v, ok := m["schedule"].([]interface{}); ok && len(v) > 0 {
+	if v, ok := m[names.AttrSchedule].([]interface{}); ok && len(v) > 0 {
 		policyDetails.Schedules = expandSchedules(v)
 	}
-	if v, ok := m["action"].([]interface{}); ok && len(v) > 0 {
+	if v, ok := m[names.AttrAction].([]interface{}); ok && len(v) > 0 {
 		policyDetails.Actions = expandActions(v)
 	}
 	if v, ok := m["event_source"].([]interface{}); ok && len(v) > 0 {
@@ -647,9 +647,9 @@ func flattenPolicyDetails(policyDetails *dlm.PolicyDetails) []map[string]interfa
 	result := make(map[string]interface{})
 	result["resource_types"] = flex.FlattenStringList(policyDetails.ResourceTypes)
 	result["resource_locations"] = flex.FlattenStringList(policyDetails.ResourceLocations)
-	result["action"] = flattenActions(policyDetails.Actions)
+	result[names.AttrAction] = flattenActions(policyDetails.Actions)
 	result["event_source"] = flattenEventSource(policyDetails.EventSource)
-	result["schedule"] = flattenSchedules(policyDetails.Schedules)
+	result[names.AttrSchedule] = flattenSchedules(policyDetails.Schedules)
 	result["target_tags"] = flattenTags(policyDetails.TargetTags)
 	result["policy_type"] = aws.StringValue(policyDetails.PolicyType)
 
@@ -782,13 +782,13 @@ func expandActionCrossRegionCopyRules(l []interface{}) []*dlm.CrossRegionCopyAct
 		}
 
 		rule := &dlm.CrossRegionCopyAction{}
-		if v, ok := m["encryption_configuration"].([]interface{}); ok {
+		if v, ok := m[names.AttrEncryptionConfiguration].([]interface{}); ok {
 			rule.EncryptionConfiguration = expandActionCrossRegionCopyRuleEncryptionConfiguration(v)
 		}
 		if v, ok := m["retain_rule"].([]interface{}); ok && len(v) > 0 && v[0] != nil {
 			rule.RetainRule = expandCrossRegionCopyRuleRetainRule(v)
 		}
-		if v, ok := m["target"].(string); ok && v != "" {
+		if v, ok := m[names.AttrTarget].(string); ok && v != "" {
 			rule.Target = aws.String(v)
 		}
 
@@ -811,9 +811,9 @@ func flattenActionCrossRegionCopyRules(rules []*dlm.CrossRegionCopyAction) []int
 		}
 
 		m := map[string]interface{}{
-			"encryption_configuration": flattenActionCrossRegionCopyRuleEncryptionConfiguration(rule.EncryptionConfiguration),
-			"retain_rule":              flattenCrossRegionCopyRuleRetainRule(rule.RetainRule),
-			"target":                   aws.StringValue(rule.Target),
+			names.AttrEncryptionConfiguration: flattenActionCrossRegionCopyRuleEncryptionConfiguration(rule.EncryptionConfiguration),
+			"retain_rule":                     flattenCrossRegionCopyRuleRetainRule(rule.RetainRule),
+			names.AttrTarget:                  aws.StringValue(rule.Target),
 		}
 
 		result = append(result, m)
@@ -941,7 +941,7 @@ func expandCrossRegionCopyRules(l []interface{}) []*dlm.CrossRegionCopyRule {
 		if v, ok := m["retain_rule"].([]interface{}); ok && len(v) > 0 && v[0] != nil {
 			rule.RetainRule = expandCrossRegionCopyRuleRetainRule(v)
 		}
-		if v, ok := m["target"].(string); ok && v != "" {
+		if v, ok := m[names.AttrTarget].(string); ok && v != "" {
 			rule.Target = aws.String(v)
 		}
 
@@ -969,7 +969,7 @@ func flattenCrossRegionCopyRules(rules []*dlm.CrossRegionCopyRule) []interface{}
 			"deprecate_rule":    flattenCrossRegionCopyRuleDeprecateRule(rule.DeprecateRule),
 			names.AttrEncrypted: aws.BoolValue(rule.Encrypted),
 			"retain_rule":       flattenCrossRegionCopyRuleRetainRule(rule.RetainRule),
-			"target":            aws.StringValue(rule.Target),
+			names.AttrTarget:    aws.StringValue(rule.Target),
 		}
 
 		result = append(result, m)
@@ -986,7 +986,7 @@ func expandCrossRegionCopyRuleDeprecateRule(l []interface{}) *dlm.CrossRegionCop
 	m := l[0].(map[string]interface{})
 
 	return &dlm.CrossRegionCopyDeprecateRule{
-		Interval:     aws.Int64(int64(m["interval"].(int))),
+		Interval:     aws.Int64(int64(m[names.AttrInterval].(int))),
 		IntervalUnit: aws.String(m["interval_unit"].(string)),
 	}
 }
@@ -999,7 +999,7 @@ func expandCrossRegionCopyRuleRetainRule(l []interface{}) *dlm.CrossRegionCopyRe
 	m := l[0].(map[string]interface{})
 
 	return &dlm.CrossRegionCopyRetainRule{
-		Interval:     aws.Int64(int64(m["interval"].(int))),
+		Interval:     aws.Int64(int64(m[names.AttrInterval].(int))),
 		IntervalUnit: aws.String(m["interval_unit"].(string)),
 	}
 }
@@ -1010,8 +1010,8 @@ func flattenCrossRegionCopyRuleDeprecateRule(rule *dlm.CrossRegionCopyDeprecateR
 	}
 
 	m := map[string]interface{}{
-		"interval":      int(aws.Int64Value(rule.Interval)),
-		"interval_unit": aws.StringValue(rule.IntervalUnit),
+		names.AttrInterval: int(aws.Int64Value(rule.Interval)),
+		"interval_unit":    aws.StringValue(rule.IntervalUnit),
 	}
 
 	return []interface{}{m}
@@ -1023,8 +1023,8 @@ func flattenCrossRegionCopyRuleRetainRule(rule *dlm.CrossRegionCopyRetainRule) [
 	}
 
 	m := map[string]interface{}{
-		"interval":      int(aws.Int64Value(rule.Interval)),
-		"interval_unit": aws.StringValue(rule.IntervalUnit),
+		names.AttrInterval: int(aws.Int64Value(rule.Interval)),
+		"interval_unit":    aws.StringValue(rule.IntervalUnit),
 	}
 
 	return []interface{}{m}
@@ -1041,7 +1041,7 @@ func expandCreateRule(cfg []interface{}) *dlm.CreateRule {
 		createRule.Times = flex.ExpandStringList(v)
 	}
 
-	if v, ok := c["interval"].(int); ok && v > 0 {
+	if v, ok := c[names.AttrInterval].(int); ok && v > 0 {
 		createRule.Interval = aws.Int64(int64(v))
 	}
 
@@ -1072,7 +1072,7 @@ func flattenCreateRule(createRule *dlm.CreateRule) []map[string]interface{} {
 	result["times"] = flex.FlattenStringList(createRule.Times)
 
 	if createRule.Interval != nil {
-		result["interval"] = aws.Int64Value(createRule.Interval)
+		result[names.AttrInterval] = aws.Int64Value(createRule.Interval)
 	}
 
 	if createRule.IntervalUnit != nil {
@@ -1101,7 +1101,7 @@ func expandRetainRule(cfg []interface{}) *dlm.RetainRule {
 		rule.Count = aws.Int64(int64(v))
 	}
 
-	if v, ok := m["interval"].(int); ok && v > 0 {
+	if v, ok := m[names.AttrInterval].(int); ok && v > 0 {
 		rule.Interval = aws.Int64(int64(v))
 	}
 
@@ -1116,7 +1116,7 @@ func flattenRetainRule(retainRule *dlm.RetainRule) []map[string]interface{} {
 	result := make(map[string]interface{})
 	result["count"] = aws.Int64Value(retainRule.Count)
 	result["interval_unit"] = aws.StringValue(retainRule.IntervalUnit)
-	result["interval"] = aws.Int64Value(retainRule.Interval)
+	result[names.AttrInterval] = aws.Int64Value(retainRule.Interval)
 
 	return []map[string]interface{}{result}
 }
@@ -1132,7 +1132,7 @@ func expandDeprecateRule(cfg []interface{}) *dlm.DeprecateRule {
 		rule.Count = aws.Int64(int64(v))
 	}
 
-	if v, ok := m["interval"].(int); ok && v > 0 {
+	if v, ok := m[names.AttrInterval].(int); ok && v > 0 {
 		rule.Interval = aws.Int64(int64(v))
 	}
 
@@ -1147,7 +1147,7 @@ func flattenDeprecateRule(rule *dlm.DeprecateRule) []map[string]interface{} {
 	result := make(map[string]interface{})
 	result["count"] = aws.Int64Value(rule.Count)
 	result["interval_unit"] = aws.StringValue(rule.IntervalUnit)
-	result["interval"] = aws.Int64Value(rule.Interval)
+	result[names.AttrInterval] = aws.Int64Value(rule.Interval)
 
 	return []map[string]interface{}{result}
 }
@@ -1165,7 +1165,7 @@ func expandFastRestoreRule(cfg []interface{}) *dlm.FastRestoreRule {
 		rule.Count = aws.Int64(int64(v))
 	}
 
-	if v, ok := m["interval"].(int); ok && v > 0 {
+	if v, ok := m[names.AttrInterval].(int); ok && v > 0 {
 		rule.Interval = aws.Int64(int64(v))
 	}
 
@@ -1180,7 +1180,7 @@ func flattenFastRestoreRule(rule *dlm.FastRestoreRule) []map[string]interface{} 
 	result := make(map[string]interface{})
 	result["count"] = aws.Int64Value(rule.Count)
 	result["interval_unit"] = aws.StringValue(rule.IntervalUnit)
-	result["interval"] = aws.Int64Value(rule.Interval)
+	result[names.AttrInterval] = aws.Int64Value(rule.Interval)
 	result[names.AttrAvailabilityZones] = flex.FlattenStringSet(rule.AvailabilityZones)
 
 	return []map[string]interface{}{result}

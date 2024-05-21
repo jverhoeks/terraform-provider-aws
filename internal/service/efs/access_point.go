@@ -89,7 +89,7 @@ func ResourceAccessPoint() *schema.Resource {
 				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"path": {
+						names.AttrPath: {
 							Type:     schema.TypeString,
 							Optional: true,
 							ForceNew: true,
@@ -113,7 +113,7 @@ func ResourceAccessPoint() *schema.Resource {
 										Required: true,
 										ForceNew: true,
 									},
-									"permissions": {
+									names.AttrPermissions: {
 										Type:     schema.TypeString,
 										Required: true,
 										ForceNew: true,
@@ -280,7 +280,7 @@ func expandAccessPointRootDirectory(rDir []interface{}) *efs.RootDirectory {
 
 	rootDir := &efs.RootDirectory{}
 
-	if v, ok := m["path"]; ok {
+	if v, ok := m[names.AttrPath]; ok {
 		rootDir.Path = aws.String(v.(string))
 	}
 
@@ -301,7 +301,7 @@ func expandAccessPointRootDirectoryCreationInfo(cInfo []interface{}) *efs.Creati
 	creationInfo := &efs.CreationInfo{
 		OwnerGid:    aws.Int64(int64(m["owner_gid"].(int))),
 		OwnerUid:    aws.Int64(int64(m["owner_uid"].(int))),
-		Permissions: aws.String(m["permissions"].(string)),
+		Permissions: aws.String(m[names.AttrPermissions].(string)),
 	}
 
 	return creationInfo
@@ -327,7 +327,7 @@ func flattenAccessPointRootDirectory(rDir *efs.RootDirectory) []interface{} {
 	}
 
 	m := map[string]interface{}{
-		"path":          aws.StringValue(rDir.Path),
+		names.AttrPath:  aws.StringValue(rDir.Path),
 		"creation_info": flattenAccessPointRootDirectoryCreationInfo(rDir.CreationInfo),
 	}
 
@@ -340,9 +340,9 @@ func flattenAccessPointRootDirectoryCreationInfo(cInfo *efs.CreationInfo) []inte
 	}
 
 	m := map[string]interface{}{
-		"owner_gid":   aws.Int64Value(cInfo.OwnerGid),
-		"owner_uid":   aws.Int64Value(cInfo.OwnerUid),
-		"permissions": aws.StringValue(cInfo.Permissions),
+		"owner_gid":           aws.Int64Value(cInfo.OwnerGid),
+		"owner_uid":           aws.Int64Value(cInfo.OwnerUid),
+		names.AttrPermissions: aws.StringValue(cInfo.Permissions),
 	}
 
 	return []interface{}{m}
